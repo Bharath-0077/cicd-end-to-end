@@ -8,6 +8,31 @@ pipeline {
     
     stages {
         
+        stage("Input") {
+            steps {
+                script {
+
+                    // Variables for input
+                    def version
+
+                    // Get the input
+                    def userInput = input(
+                            id: 'userInput', message: 'Enter path of test reports:?',
+                            parameters: [
+                                    string(defaultValue: 'None',
+                                            description: 'Image Build Version',
+                                            name: 'Version'),
+                            ])
+
+                    // Save to variables. Default to empty string if not found.
+                    version = userInput.Version?:''
+
+                    // Echo to console
+                    echo("Image Version : ${version}")
+                }
+            }
+        }
+        
         stage('Checkout'){
            steps {
                 git credentialsId: 'f87a34a8-0e09-45e7-b9cf-6dc68feac670', 
@@ -53,6 +78,7 @@ pipeline {
                         sh '''
                         cat deploy.yaml
                         sed -i '' "s/32/${BUILD_NUMBER}/g" deploy.yaml
+                        sed -i '' "s/IMAGE_VERSION/version/g" deploy.yaml
                         cat deploy.yaml
                         git add deploy.yaml
                         git commit -m 'Updated the deploy yaml | Jenkins Pipeline'
